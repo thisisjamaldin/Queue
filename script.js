@@ -12,41 +12,45 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref('queue');
 
-function getTodayDate() {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
-}
-
 async function assignNumber() {
     const stored = JSON.parse(localStorage.getItem('myQueue'));
-    const today = getTodayDate();
-
-    // If user already has today’s number, check if it’s still valid
-    if (stored && stored.date === today) {
-        const snap = await ref.once('value');
-        const data = snap.val() || { date: today, count: 0, total: 1 };
-
-        // If current queue count is still below the user’s number, re‑use it
-        if (data.count < stored.number) {
-            display(stored.number, today);
-            return;
-        }
-        // Otherwise, their slot has passed—fall through to assign a new number
+    
+    // 1) Try to reuse today’s number:
+    if (stored) {
+      // if it’s still ahead of “count”, just show it
+      const snap = await ref.once('value');
+      const { count = 0, numbers = {} } = snap.val() || {};
+      if (stored.number > count) {
+        display(stored.number, stored.phone);
+        return;
+      }
+      // otherwise fall-through to get a fresh one
     }
-
-    // Fetch fresh data and reset at 2 AM if needed
+  
+    // 2) Fetch current snapshot, pull existing map
     const snap = await ref.once('value');
-    let { date, count, total } = snap.val() || { date: today, count: 0, total: 0 };
-    // Issue the next number
-    total++;
-    await ref.set({ date, count, total });
-    localStorage.setItem('myQueue', JSON.stringify({ date, number: total }));
-    display(count, date);
-}
+    const data = snap.val() || { count: 0, numbers: {} };
+  
+    // next queue number is map size + 1
+    const next = Object.keys(data.numbers).length + 1;
+    const phone = document.getElementById('userPhone').value.trim();
+    if (!phone) {
+      alert('Пожалуйста, введите номер телефона');
+      return;
+    }
+  
+    // 3) Write back: preserve .count, update the map
+    const updatedMap = { ...data.numbers, [next]: phone };
+    await ref.update({ numbers: updatedMap });
+  
+    // 4) Save locally and show
+    localStorage.setItem('myQueue', JSON.stringify({ number: next, phone }));
+    display(next, phone);
+  }
 
-function display(num, date) {
+function display(num, phone) {
     document.getElementById('number').textContent = num;
-    document.getElementById('date').textContent = date;
+    document.getElementById('phone').textContent = phone;
 }
 
 // Attach event to button
@@ -54,37 +58,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('getQueueBtn').addEventListener('click', assignNumber);
     // Update remaining count whenever queue changes
     ref.on('value', snap => {
-        const data = snap.val();
+        const data = snap.val() || { count: 0, numbers: {} };
         const stored = JSON.parse(localStorage.getItem('myQueue'));
-        if (stored && data && typeof data.count === 'number' && typeof data.total === 'number') {
-            if (data.count > stored.number) {
-                localStorage.clear();
-                assignNumber();
-                // display(0, )
-            } else {
-                const remaining = stored.number - data.count;
-                document.getElementById('remaining').textContent = `Люди впереди(Алдыда адам бар): ${remaining >= 0 ? remaining : 0}`;
-            }
+        if (stored && data.count != null) {
+          // if the serving number has passed theirs, clear out
+          if (data.count >= stored.number) {
+            localStorage.removeItem('myQueue');
+            assignNumber(); 
+          } else {
+            const remaining = stored.number - data.count;
+            document.getElementById('remaining').textContent =
+              `Люди впереди(Алдыда адам бар): ${remaining}`;
+          }
         }
-    });
-
-    // function updateRemaining(count, userNumber) {
-    //     let remaining;
-    //     if (count < userNumber) {
-    //         remaining = userNumber - count;
-    //     } else if (count === userNumber) {
-    //         remaining = 0;
-    //     } else {
-    //         remaining = 0;
-    //     }
-    //     const el = document.getElementById('remaining');
-    //     if (remaining === 0) {
-    //         el.textContent = (count === userNumber) ? "Ваша очередь!" : "Люди впереди(Алдыда адам бар): 0";
-    //     } else {
-    //         el.textContent = `Люди впереди(Алдыда адам бар): ${remaining}`;
-    //     }
-    // }
-
-    // Attach refresh button
-    // document.getElementById('refreshBtn').addEventListener('click', updateRemaining);
+      });
 });
