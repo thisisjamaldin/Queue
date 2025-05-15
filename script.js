@@ -41,10 +41,10 @@ async function assignNumber() {
     total++;
     await ref.set({ date, count, total });
     localStorage.setItem('myQueue', JSON.stringify({ date, number: total }));
-    display(count, date, total);
+    display(count, date);
 }
 
-function display(num, date, total) {
+function display(num, date) {
     document.getElementById('number').textContent = num;
     document.getElementById('date').textContent = date;
 }
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 assignNumber();
                 // display(0, )
             } else {
-                const remaining = data.count - stored.number;
+                const remaining = stored.number - data.count;
                 document.getElementById('remaining').textContent = `Люди впереди(Алдыда адам бар): ${remaining >= 0 ? remaining : 0}`;
             }
         }
