@@ -57,7 +57,7 @@ function display(num, date) {
      const stored = JSON.parse(localStorage.getItem('myQueue'));
      if (stored && data && typeof data.count === 'number') {
        const remaining = data.count - stored.number;
-       document.getElementById('remaining').textContent = `People ahead: ${remaining >= 0 ? remaining : 0}`;
+       document.getElementById('remaining').textContent = `Люди впереди(Алдыда адам бар): ${remaining >= 0 ? remaining : 0}`;
      }
    });
 
