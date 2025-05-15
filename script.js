@@ -59,7 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stored && data && typeof data.count === 'number' && typeof data.total === 'number') {
             if (data.count > stored.number) {
                 localStorage.clear();
-                display(0, )
+                assignNumber();
+                // display(0, )
             } else {
                 const remaining = data.count - stored.number;
                 document.getElementById('remaining').textContent = `Люди впереди(Алдыда адам бар): ${remaining >= 0 ? remaining : 0}`;
