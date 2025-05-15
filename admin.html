@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Queue Control</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Queue Administration</h1>
+    <div>Current Date: <span id="currentDate">--</span></div>
+    <div>Current Number: <span id="currentNumber">--</span></div>
+    <hr>
+    <label for="nextNumber">Set Next Number:</label>
+    <input type="number" id="nextNumber" min="0">
+    <button id="updateBtn">Update</button>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>
