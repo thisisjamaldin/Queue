@@ -8,8 +8,7 @@ const firebaseConfig = {
     messagingSenderId: "1052131490667",
     appId: "1:1052131490667:web:f5515886b538382e0b2a2e"
   };
-  
-firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref('queue');
 
@@ -61,4 +60,19 @@ function display(num, date) {
        document.getElementById('remaining').textContent = `People ahead: ${remaining >= 0 ? remaining : 0}`;
      }
    });
+
+  // Function to manually refresh remaining count
+  function updateRemaining() {
+    ref.once('value').then(snap => {
+      const data = snap.val();
+      const stored = JSON.parse(localStorage.getItem('myQueue'));
+      if (stored && data && typeof data.count === 'number') {
+        const remaining = data.count - stored.number;
+        document.getElementById('remaining').textContent = `People ahead: ${remaining >= 0 ? remaining : 0}`;
+      }
+    });
+  }
+
+  // Attach refresh button
+document.getElementById('refreshBtn').addEventListener('click', updateRemaining);
 });
