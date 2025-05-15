@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Queue Control</title>
+  <title>Управление очередью</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Queue Administration</h1>
-    <div>Current Date: <span id="currentDate">--</span></div>
-    <div>Current Number: <span id="currentNumber">--</span></div>
+    <h1>Админ очередей</h1>
+    <div>Текущая дата: <span id="currentDate">--</span></div>
+    <div>Текущий номер: <span id="currentNumber">--</span></div>
     <hr>
-    <label for="nextNumber">Set Next Number:</label>
+    <label for="nextNumber">Установить следующий номер:</label>
     <input type="number" id="nextNumber" min="0">
-    <button id="updateBtn">Update</button>
+    <button id="updateBtn">Обновить</button>
   </div>
   <script src="admin.js"></script>
 </body>

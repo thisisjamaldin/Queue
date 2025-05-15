@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online Queue</title>
+  <title>Онлайн-очередь</title>
   <link rel="stylesheet" href="style.css">
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -11,15 +11,12 @@
 </head>
 <body>
   <div class="container">
-    <h1>Your Queue Number</h1>
+    <h1>Ваш номер очереди</h1>
     <div id="number">--</div>
     <div id="date">--</div>
-    <div id="remaining">People ahead: --</div>
-    <button id="getQueueBtn">Get Queue Number</button>
-    <!-- Navigation to admin page -->
-    <p><a href="admin.html" class="admin-link">Admin Dashboard</a></p>
-    <!-- Refresh remaining -->
-    <button id="refreshBtn">Refresh Remaining</button>
+    <div id="remaining">Люди впереди(Алдыда адам бар): --</div>
+    <button id="refreshBtn">Обновить осталось</button>
+    <button id="getQueueBtn">Получить номер очереди</button>
   </div>
   <script src="script.js"></script>
 </body>
