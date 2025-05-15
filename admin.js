@@ -22,12 +22,13 @@
     const data = snap.val() || { date: getTodayDate(), count: 0 };
     document.getElementById('currentDate').textContent = data.date;
     document.getElementById('currentNumber').textContent = data.count;
-  });
+
   
   document.getElementById('updateBtn').addEventListener('click', () => {
     const next = parseInt(document.getElementById('nextNumber').value, 10);
     if (!isNaN(next)) {
-      ref.set({ date: getTodayDate(), count: next });
+      ref.set({ date: getTodayDate(), count: next, total: data.total});
       document.getElementById('nextNumber').value = '';
     }
   });
+});
