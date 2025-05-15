@@ -24,7 +24,7 @@ async function assignNumber() {
     // If user already has today’s number, check if it’s still valid
     if (stored && stored.date === today) {
         const snap = await ref.once('value');
-        const data = snap.val() || { date: today, count: 0 };
+        const data = snap.val() || { date: today, count: 0, total: 1 };
 
         // If current queue count is still below the user’s number, re‑use it
         if (data.count < stored.number) {
@@ -36,21 +36,15 @@ async function assignNumber() {
 
     // Fetch fresh data and reset at 2 AM if needed
     const snap = await ref.once('value');
-    let { date, count } = snap.val() || { date: today, count: 0 };
-    const now = new Date();
-    if (date !== today && now.getHours() >= 2) {
-        date = today;
-        count = 0;
-    }
-
+    let { date, count, total } = snap.val() || { date: today, count: 0, total: 0 };
     // Issue the next number
-    count++;
-    await ref.set({ date, count });
-    localStorage.setItem('myQueue', JSON.stringify({ date, number: count }));
-    display(count, date);
+    total++;
+    await ref.set({ date, count, total });
+    localStorage.setItem('myQueue', JSON.stringify({ date, number: total }));
+    display(count, date, total);
 }
 
-function display(num, date) {
+function display(num, date, total) {
     document.getElementById('number').textContent = num;
     document.getElementById('date').textContent = date;
 }
@@ -62,9 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ref.on('value', snap => {
         const data = snap.val();
         const stored = JSON.parse(localStorage.getItem('myQueue'));
-        if (stored && data && typeof data.count === 'number') {
+        if (stored && data && typeof data.count === 'number' && typeof data.total === 'number') {
             if (data.count > stored.number) {
                 localStorage.clear();
+                display(0, )
             } else {
                 const remaining = data.count - stored.number;
                 document.getElementById('remaining').textContent = `Люди впереди(Алдыда адам бар): ${remaining >= 0 ? remaining : 0}`;
