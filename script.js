@@ -28,7 +28,6 @@ async function assignNumber() {
   const snap = await ref.once('value');
   let { date, count } = snap.val() || { date: today, count: 0 };
 
-  // Reset at or after 2 AM
   const now = new Date();
   const hour = now.getHours();
   if (date !== today && hour >= 2) {
@@ -61,16 +60,21 @@ function display(num, date) {
      }
    });
 
-  // Function to manually refresh remaining count
-  function updateRemaining() {
-    ref.once('value').then(snap => {
-      const data = snap.val();
-      const stored = JSON.parse(localStorage.getItem('myQueue'));
-      if (stored && data && typeof data.count === 'number') {
-        const remaining = data.count - stored.number;
-        document.getElementById('remaining').textContent = `People ahead: ${remaining >= 0 ? remaining : 0}`;
-      }
-    });
+   function updateRemaining(count, userNumber) {
+    let remaining;
+    if (count < userNumber) {
+      remaining = userNumber - count;
+    } else if (count === userNumber) {
+      remaining = 0;
+    } else {
+      remaining = 0;
+    }
+    const el = document.getElementById('remaining');
+    if (remaining === 0) {
+      el.textContent = (count === userNumber) ? "Ваша очередь!" : "Люди впереди(Алдыда адам бар): 0";
+    } else {
+      el.textContent = `Люди впереди(Алдыда адам бар): ${remaining}`;
+    }
   }
 
   // Attach refresh button
