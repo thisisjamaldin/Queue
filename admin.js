@@ -8,27 +8,40 @@ const firebaseConfig = {
     messagingSenderId: "1052131490667",
     appId: "1:1052131490667:web:f5515886b538382e0b2a2e"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref('queue');
 
+// listen & render
 ref.on('value', snap => {
-    const data = snap.val() || { count: 0, numbers: {} };
-    const phone = data.numbers?.[data.count] ?? '--';
-    const telLink = document.querySelector('a[href^="tel:"]');
-    if (telLink) {
-        telLink.href = phone !== '--' ? `tel:${phone}` : '#';
-    }
-    document.getElementById('phone').textContent = phone;
-    document.getElementById('currentNumber').textContent = data.count;
+  const data = snap.val() || { count: 0, numbers: {}, total: 0 };
+  const { count, numbers } = data;
+  const phone = numbers[count] || '--';
+  // render the tel link & fields
+  const telLink = document.querySelector('a[href^="tel:"]');
+  if (telLink) telLink.href = phone !== '--' ? `tel:${phone}` : '#';
+  document.getElementById('phone').textContent = phone;
+  document.getElementById('currentNumber').textContent = count;
 });
 
+// bump count & prune old
 document.getElementById('updateBtn').addEventListener('click', async () => {
-    const nextCount = parseInt(document.getElementById('nextNumber').value, 10);
-    if (isNaN(nextCount)) return alert('Введите число');
+  const nextCount = parseInt(document.getElementById('nextNumber').value, 10);
+  if (isNaN(nextCount)) return alert('Введите число');
 
-    // update only the count field
-    await ref.update({ count: nextCount });
-    document.getElementById('nextNumber').value = '';
+  // 1) Update count
+  await ref.update({ count: nextCount });
+
+  // 2) Prune any tickets ≤ nextCount
+  const snap = await ref.once('value');
+  const data = snap.val() || { numbers: {} };
+  const numbers = data.numbers || {};
+  const pruned = {};
+  Object.entries(numbers).forEach(([num, phone]) => {
+    if (Number(num) > nextCount) pruned[num] = phone;
+  });
+  // write back only the unserved tickets
+  await ref.update({ numbers: pruned });
+
+  document.getElementById('nextNumber').value = '';
 });

@@ -13,63 +13,52 @@ const db = firebase.database();
 const ref = db.ref('queue');
 
 async function assignNumber() {
-    const stored = JSON.parse(localStorage.getItem('myQueue'));
-    
-    // 1) Try to reuse today’s number:
-    if (stored) {
-      // if it’s still ahead of “count”, just show it
-      const snap = await ref.once('value');
-      const { count = 0, numbers = {} } = snap.val() || {};
-      if (stored.number > count) {
-        display(stored.number, stored.phone);
-        return;
-      }
-      // otherwise fall-through to get a fresh one
-    }
-  
-    // 2) Fetch current snapshot, pull existing map
-    const snap = await ref.once('value');
-    const data = snap.val() || { count: 0, numbers: {} };
-  
-    // next queue number is map size + 1
-    const next = Object.keys(data.numbers).length + 1;
-    const phone = document.getElementById('userPhone').value.trim();
-    if (!phone) {
-      alert('Пожалуйста, введите номер телефона');
-      return;
-    }
-  
-    // 3) Write back: preserve .count, update the map
-    const updatedMap = { ...data.numbers, [next]: phone };
-    await ref.update({ numbers: updatedMap });
-  
-    // 4) Save locally and show
-    localStorage.setItem('myQueue', JSON.stringify({ number: next, phone }));
-    display(next, phone);
+  const stored = JSON.parse(localStorage.getItem('myQueue')) || {};
+
+  // If they already have a ticket ahead of current count, just show it:
+  const snap0 = await ref.once('value');
+  const { count = 0, numbers = {}, total = 0 } = snap0.val() || {};
+  if (stored.number > count) {
+    render(stored.number, stored.phone, count);
+    return;
   }
 
-function display(num, phone) {
-    document.getElementById('number').textContent = num;
-    document.getElementById('phone').textContent = phone;
+  // Otherwise issue a fresh ticket:
+  const next = total + 1;
+  const phone = document.getElementById('userPhone').value.trim();
+  if (!phone) return alert('Пожалуйста, введите номер телефона');
+
+  // update DB: bump numbers map, bump total (but leave count untouched)
+  const updatedMap = { ...numbers, [next]: phone };
+  const today = new Date().toISOString().slice(0,10);
+  await ref.update({
+    numbers: updatedMap,
+    total: next,
+    date: today
+  });
+
+  localStorage.setItem('myQueue', JSON.stringify({ number: next, phone }));
+  render(next, phone, count);
 }
 
-// Attach event to button
+function render(myNumber, phone, count) {
+  document.getElementById('number').textContent    = myNumber;
+  document.getElementById('phone').textContent     = phone;
+  document.getElementById('remaining').textContent = 
+      `Люди впереди(Алдыда адам бар)2: ${Math.max(0, myNumber - count)}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('getQueueBtn').addEventListener('click', assignNumber);
-    // Update remaining count whenever queue changes
-    ref.on('value', snap => {
-        const data = snap.val() || { count: 0, numbers: {} };
-        const stored = JSON.parse(localStorage.getItem('myQueue'));
-        if (stored && data.count != null) {
-          // if the serving number has passed theirs, clear out
-          if (data.count >= stored.number) {
-            localStorage.removeItem('myQueue');
-            assignNumber(); 
-          } else {
-            const remaining = stored.number - data.count;
-            document.getElementById('remaining').textContent =
-              `Люди впереди(Алдыда адам бар): ${remaining}`;
-          }
-        }
-      });
+  document.getElementById('getQueueBtn').addEventListener('click', assignNumber);
+  ref.on('value', snap => {
+    const { count = 0, total = 0 } = snap.val() || {};
+    const stored = JSON.parse(localStorage.getItem('myQueue')) || {};
+    if (stored.number > count) {
+      render(stored.number, stored.phone, count);
+    } else if (stored.number) {
+      // they’ve now been served, clear and re-assign
+      localStorage.removeItem('myQueue');
+      document.getElementById('remaining').textContent = 'Ваша очередь прошла.';
+    }
+  });
 });
