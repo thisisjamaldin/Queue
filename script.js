@@ -86,5 +86,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Attach refresh button
-    document.getElementById('refreshBtn').addEventListener('click', updateRemaining);
+    // document.getElementById('refreshBtn').addEventListener('click', updateRemaining);
 });
