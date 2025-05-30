@@ -20,12 +20,14 @@
 </head>
 
 <body>
-  <h1>Join the Queue</h1>
-  <p>Current Queue: <span id="currentQueue">Loading...</span></p>
-  <p>People in Queue: <span id="peopleLeft">Loading...</span></p>
-  <input type="tel" id="phone" placeholder="Enter phone number" required />
-  <button id="queueBtn">Take Queue</button>
-  <p>Your Queue Number: <span id="yourQueue">-</span></p>
+  <h1>Очеред</h1>
+  <p>Очереди келди: <span id="currentQueue">Загрузка..</span></p>
+  <p>Адам бар: <span id="peopleLeft">Загрузка...</span></p>
+  <input type="tel" id="phone" placeholder="Телефон номер" required />
+  <button id="queueBtn">Очередь алуу</button>
+  <p>Очерединиз: <span id="yourQueue">-</span></p>
+  <p>Очеред алган убакытыз: <span id="queueTime">-</span></p>
+
 
   <script>
     const firebaseConfig = {
@@ -46,8 +48,10 @@
     const queueBtn = document.getElementById('queueBtn');
     const phoneInput = document.getElementById('phone');
     const yourQueueSpan = document.getElementById('yourQueue');
+    const queueTimeSpan = document.getElementById('queueTime');
 
     const savedQueue = localStorage.getItem('myQueue');
+    const savedTime = localStorage.getItem('myQueueTime');
 
     function updateUI(snapshot) {
       const data = snapshot.val();
@@ -61,19 +65,21 @@
 
       if (status.isActive === false) {
         queueBtn.disabled = true;
-        queueBtn.textContent = "Queue is Closed";
+        queueBtn.textContent = "Закрыто";
       } else {
         queueBtn.disabled = false;
-        queueBtn.textContent = "Take Queue";
+        queueBtn.textContent = "Очередь алуу";
       }
 
       // Check for skipping
       if (savedQueue && queues[savedQueue] === undefined) {
         localStorage.removeItem('myQueue');
         yourQueueSpan.textContent = "-";
-        alert("Your queue was skipped or removed. Please rejoin.");
+        queueTimeSpan.textContent = "-";
+        alert("Очерединиз өтуб кети");
       } else if (savedQueue) {
         yourQueueSpan.textContent = savedQueue;
+        queueTimeSpan.textContent = new Date(Number(savedTime)).toLocaleString();
       }
     }
 
@@ -81,10 +87,10 @@
 
     queueBtn.onclick = () => {
       const phone = phoneInput.value;
-      if (!phone) return alert("Enter a valid phone number.");
+      if (!phone) return alert("Телефон номер жазыныз");
 
       if (localStorage.getItem('myQueue')) {
-        return alert("You already have a queue: " + localStorage.getItem('myQueue'));
+        return alert("Очерединиз бар: " + localStorage.getItem('myQueue'));
       }
 
       db.ref('queues').once('value').then(snapshot => {
@@ -93,10 +99,15 @@
 
         db.ref(`queues/${next}`).set({
           phone: phone,
-          timestamp: Date.now()
+          timestamp: firebase.database.ServerValue.TIMESTAMP
         }).then(() => {
+          return db.ref(`queues/${next}/timestamp`).once('value');
+        }).then(() => {
+          const serverTime = snap.val();
           localStorage.setItem('myQueue', next);
+          localStorage.setItem('myQueueTime', serverTime);
           yourQueueSpan.textContent = next;
+          queueTimeSpan.textContent = new Date(serverTime).toLocaleString();
         });
       });
     };

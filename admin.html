@@ -23,14 +23,15 @@
 </head>
 
 <body>
-  <h1>Queue Manager</h1>
-  <p>Current Queue: <span id="currentQueue">Loading...</span></p>
-  <button id="nextBtn">Next Queue</button>
-  <button id="stopBtn">Stop</button>
-  <button id="startBtn">Start (Clear All)</button>
+  <h1>Менеджер очереди</h1>
+  <p>Текущая очередь: <span id="currentQueue">Загрузка...</span></p>
+  <button id="prevBtn">Предыдущая очередь</button>
+  <button id="nextBtn">Следующая очередь</button>
+  <button id="stopBtn">Закрыть</button>
+  <button id="startBtn">Начать (Очистить все)</button>
 
-  <h2>All Queues</h2>
-  <div id="queueList">Loading...</div>
+  <h2>Все очереди</h2>
+  <div id="queueList">Загрузка...</div>
 
   <script>
     const firebaseConfig = {
@@ -49,6 +50,7 @@
     const currentQueueSpan = document.getElementById('currentQueue');
     const queueListDiv = document.getElementById('queueList');
     const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
     const stopBtn = document.getElementById('stopBtn');
     const startBtn = document.getElementById('startBtn');
 
@@ -61,13 +63,17 @@
 
       let html = '';
       Object.keys(queues).forEach(key => {
+        const { phone, timestamp } = queues[key];
+        const takenAt = new Date(timestamp).toLocaleString();
         html += `<div class="entry">
           <strong>#${key}</strong> - ${queues[key].phone}
-          <button onclick="removeQueue(${key})">Delete</button>
+          <em>(взятый в ${takenAt})</em>
+          <a href="tel:${phone}"><button>Позвонить</button></a>
+          <button onclick="removeQueue(${key})">Удалить</button>
         </div>`;
       });
 
-      queueListDiv.innerHTML = html || 'No queue data.';
+      queueListDiv.innerHTML = html || 'Пусто.';
     }
 
     window.removeQueue = function (key) {
@@ -78,6 +84,13 @@
       db.ref('queueStatus/currentQueue').once('value').then(snap => {
         const val = snap.val() || 0;
         db.ref('queueStatus/currentQueue').set(val + 1);
+      });
+    };
+
+    prevBtn.onclick = () => {
+      db.ref('queueStatus/currentQueue').once('value').then(snap => {
+        const val = snap.val() || 1;
+        db.ref('queueStatus/currentQueue').set(val - 1);
       });
     };
 
