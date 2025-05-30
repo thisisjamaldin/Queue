@@ -95,7 +95,7 @@
         return alert("Очерединиз бар: " + localStorage.getItem('myQueue'));
       }
 
-      db.ref('queues').once('value').then(snapshot => {
+      db.ref('queues').once('value').then(snap => {
         const next = (snap.val() || 0) + 1;
         db.ref(`queues/${next}`).set({
           phone: phone,
