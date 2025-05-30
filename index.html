@@ -107,7 +107,7 @@
           localStorage.setItem('myQueue', next);
           localStorage.setItem('myQueueTime', serverTime);
           yourQueueSpan.textContent = next;
-          queueTimeSpan.textContent = new Date(serverTime).toLocaleString();
+          queueTimeSpan.textContent = new Date(serverTime).toLocaleString('en-GB');
         });
       });
     };

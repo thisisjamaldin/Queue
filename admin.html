@@ -64,7 +64,7 @@
       let html = '';
       Object.keys(queues).forEach(key => {
         const { phone, timestamp } = queues[key];
-        const takenAt = new Date(timestamp).toLocaleString();
+        const takenAt = new Date(timestamp).toLocaleString('en-GB');
         html += `<div class="entry">
           <strong>#${key}</strong> - ${queues[key].phone}
           <em>(взятый в ${takenAt})</em>
