@@ -72,17 +72,16 @@
       }
 
       // Check for skipping
-      if (savedQueue) {
-        if (!queues[savedQueue] || status.currentQueue >= Number(savedQueue)) {
-          localStorage.removeItem('myQueue');
-          localStorage.removeItem('myQueueTime');
-          yourQueueSpan.textContent = "-";
-          queueTimeSpan.textContent = "-";
-          alert("Очерединиз өтуб/өчуб кети");
-        } else {
-          yourQueueSpan.textContent = savedQueue;
-          queueTimeSpan.textContent = new Date(Number(savedTime)).toLocaleString('en-GB');
-        }
+      if (savedQueue && queues[savedQueue] === undefined) {
+        console.log(queues[savedQueue]);
+        localStorage.removeItem('myQueue');
+        localStorage.removeItem('myQueueTime');
+        yourQueueSpan.textContent = "-";
+        queueTimeSpan.textContent = "-";
+        alert("Очерединиз өтуб кети");
+      } else if (savedQueue) {
+        yourQueueSpan.textContent = savedQueue;
+        queueTimeSpan.textContent = new Date(Number(savedTime)).toLocaleString('en-GB');
       }
     }
 
