@@ -2,29 +2,105 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Онлайн-очередь</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Firebase -->
+  <meta charset="UTF-8" />
+  <title>Queue System</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+    }
+
+    #queueBtn {
+      padding: 10px 20px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Ваш номер очереди</h1>
-    <div id="number">--</div>
-    <div id="phone">--</div>
-    <div id="remaining">Люди впереди(Алдыда адам бар): --</div>
-    <h2></h2>
-    <!-- <button id="refreshBtn">Обновить осталось</button> -->
-    <!-- <h2></h2> -->
-    <input style="width: 100%;" id="userPhone" placeholder="0551234567" />
-    <h2></h2>
-    <button id="getQueueBtn">Получить номер очереди</button>
-  </div>
-  <script src="script.js"></script>
+  <h1>Join the Queue</h1>
+  <p>Current Queue: <span id="currentQueue">Loading...</span></p>
+  <p>People in Queue: <span id="peopleLeft">Loading...</span></p>
+  <input type="tel" id="phone" placeholder="Enter phone number" required />
+  <button id="queueBtn">Take Queue</button>
+  <p>Your Queue Number: <span id="yourQueue">-</span></p>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjxNPm7xFPFz9QgCZzldttZFO_e-IU7ag",
+      authDomain: "queue-dentist.firebaseapp.com",
+      projectId: "queue-dentist",
+      databaseURL: "https://queue-dentist-default-rtdb.europe-west1.firebasedatabase.app",
+      storageBucket: "queue-dentist.firebasestorage.app",
+      messagingSenderId: "1052131490667",
+      appId: "1:1052131490667:web:f5515886b538382e0b2a2e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const currentQueueSpan = document.getElementById('currentQueue');
+    const peopleLeftSpan = document.getElementById('peopleLeft');
+    const queueBtn = document.getElementById('queueBtn');
+    const phoneInput = document.getElementById('phone');
+    const yourQueueSpan = document.getElementById('yourQueue');
+
+    const savedQueue = localStorage.getItem('myQueue');
+
+    function updateUI(snapshot) {
+      const data = snapshot.val();
+      const queues = data.queues || {};
+      const status = data.queueStatus || { currentQueue: 0, isActive: true };
+
+      currentQueueSpan.textContent = status.currentQueue;
+      const total = Object.keys(queues).length;
+      const left = Object.keys(queues).filter(q => Number(q) > status.currentQueue).length;
+      peopleLeftSpan.textContent = left;
+
+      if (status.isActive === false) {
+        queueBtn.disabled = true;
+        queueBtn.textContent = "Queue is Closed";
+      } else {
+        queueBtn.disabled = false;
+        queueBtn.textContent = "Take Queue";
+      }
+
+      // Check for skipping
+      if (savedQueue && queues[savedQueue] === undefined) {
+        localStorage.removeItem('myQueue');
+        yourQueueSpan.textContent = "-";
+        alert("Your queue was skipped or removed. Please rejoin.");
+      } else if (savedQueue) {
+        yourQueueSpan.textContent = savedQueue;
+      }
+    }
+
+    db.ref().on('value', updateUI);
+
+    queueBtn.onclick = () => {
+      const phone = phoneInput.value;
+      if (!phone) return alert("Enter a valid phone number.");
+
+      if (localStorage.getItem('myQueue')) {
+        return alert("You already have a queue: " + localStorage.getItem('myQueue'));
+      }
+
+      db.ref('queues').once('value').then(snapshot => {
+        const queues = snapshot.val() || {};
+        const next = Math.max(0, ...Object.keys(queues).map(Number)) + 1;
+
+        db.ref(`queues/${next}`).set({
+          phone: phone,
+          timestamp: Date.now()
+        }).then(() => {
+          localStorage.setItem('myQueue', next);
+          yourQueueSpan.textContent = next;
+        });
+      });
+    };
+  </script>
 </body>
 
 </html>
