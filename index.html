@@ -57,10 +57,10 @@
       const data = snapshot.val();
       const queues = data.queues || {};
       const status = data.queueStatus || { currentQueue: 0, isActive: true };
-
       currentQueueSpan.textContent = status.currentQueue;
       const total = Object.keys(queues).length;
       const left = Object.keys(queues).filter(q => Number(q) > status.currentQueue).length;
+      localStorage.setItem('left', left);
       peopleLeftSpan.textContent = left;
 
       if (status.isActive === false) {
@@ -91,7 +91,7 @@
       const phone = phoneInput.value;
       if (!phone) return alert("Телефон номер жазыныз");
 
-      if (localStorage.getItem('myQueue')) {
+      if (Number(localStorage.getItem('left')||'0') != 0) {
         return alert("Очерединиз бар: " + localStorage.getItem('myQueue'));
       }
 
