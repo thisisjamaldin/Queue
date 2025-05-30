@@ -96,9 +96,7 @@
       }
 
       db.ref('queues').once('value').then(snapshot => {
-        const queues = snapshot.val() || {};
-        const next = Math.max(0, ...Object.keys(queues).map(Number)) + 1;
-
+        const next = (snap.val() || 0) + 1;
         db.ref(`queues/${next}`).set({
           phone: phone,
           timestamp: firebase.database.ServerValue.TIMESTAMP
